@@ -1,0 +1,128 @@
+﻿@model MyAnaliz.DAL.Models.Request.Dashboard.TransactionsRequest
+
+@{
+    ViewData["Title"] = "MyAnaliz Dashboard";
+}
+
+<div class="container-fluid">
+    <div class="row flex-nowrap">
+        <div class="col-auto col-md-3 col-xl-2 px-sm-2 px-0 bg-dark">
+            <div class="d-flex flex-column align-items-center align-items-sm-start px-3 pt-2 text-white min-vh-100">
+                <ul class="nav nav-pills flex-column mb-sm-auto mb-0 align-items-center align-items-sm-start" id="menu">
+                    <li>
+                        <ul class="collapse show nav flex-column ms-1">
+                            <form method="post" asp-controller="Event" asp-action="Addition">
+                                <div asp-validation-summary="All" class="text-danger"></div>
+                                <div style="margin-bottom: 5px">
+                                    <label asp-for="additionRequest.Amount"></label><br />
+                                    <input class="form-control" asp-for="additionRequest.Amount" />
+                                    <span asp-validation-for="additionRequest.Amount" class="text-danger"></span>
+                                </div>
+                                <div style="margin-bottom: 5px">
+                                    <input class="btn btn-outline-success" type="submit" value="Addition" />
+                                </div>
+                            </form>
+                            <h5></h5>
+                            <form method="post" asp-controller="Event" asp-action="Waste">
+                                <div asp-validation-summary="All" class="text-danger"></div>
+                                <div style="margin-bottom: 5px">
+                                    <label asp-for="wasteRequest.Amount"></label><br />
+                                    <input class="form-control" asp-for="wasteRequest.Amount" />
+                                    <span asp-validation-for="wasteRequest.Amount" class="text-danger"></span>
+                                </div>
+                                <div style="margin-bottom: 5px">
+                                    <label asp-for="wasteRequest.Category"></label><br />
+                                    <input class="form-control" asp-for="wasteRequest.Category" />
+                                    <span asp-validation-for="wasteRequest.Category" class="text-danger"></span>
+                                </div>
+                                <div style="margin-bottom: 5px">
+                                    <label asp-for="wasteRequest.Date"></label><br />
+                                    <input class="form-control" asp-for="wasteRequest.Date" />
+                                    <span asp-validation-for="wasteRequest.Date" class="text-danger"></span>
+                                </div>
+                                <div style="margin-bottom: 5px">
+                                    <input class="btn btn-outline-danger" type="submit" value="Waste" />
+                                </div>
+                            </form>
+                        </ul>
+                    </li>
+                </ul>
+                <hr>
+            </div>
+        </div>
+        <div class="col py-3">
+            <h2>Dashboard</h2>
+            <div>
+                <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
+                <canvas id="myChart" style="width:100%; max-width:600px"></canvas>
+                <script>
+                    var xValues = [
+                        "@Model.Categories.FirstOrDefault()",
+                        "@Model.Categories.Skip(1).LastOrDefault()",
+                        "@Model.Categories.Skip(2).LastOrDefault()",
+                        "@Model.Categories.Skip(3).LastOrDefault()",
+                        "@Model.Categories.Skip(4).LastOrDefault()"];
+                    var yValues = [
+                        @Model.transactions.Where(c => c.Category == Model.Categories.FirstOrDefault()).Sum(c => c.Amount),
+                        @Model.transactions.Where(c => c.Category == Model.Categories.Skip(1).LastOrDefault()).Sum(c => c.Amount),
+                        @Model.transactions.Where(c => c.Category == Model.Categories.Skip(2).LastOrDefault()).Sum(c => c.Amount),
+                        @Model.transactions.Where(c => c.Category == Model.Categories.Skip(3).LastOrDefault()).Sum(c => c.Amount),
+                        @Model.transactions.Where(c => c.Category == Model.Categories.Skip(4).LastOrDefault()).Sum(c => c.Amount)];
+                    var barColors = [
+                        "#b91d47",
+                        "#00aba9",
+                        "#2b5797",
+                        "#e8c3b9",
+                        "#1e7145"
+                    ];
+
+                    new Chart("myChart", {
+                        type: "doughnut",
+                        data: {
+                            labels: xValues,
+                            datasets: [{
+                                backgroundColor: barColors,
+                                data: yValues
+                            }]
+                        },
+                    });
+                </script>
+                }
+            </div>
+            <h2>Transaction history</h2>
+            <div class="table-responsive small">
+                <table class="table table-striped table-sm">
+                    @{
+                        if (Model.transactions != null)
+                        {
+                            <thead>
+                                <tr>
+                                    <th scope="col" style="color: white;">OperationType</th>
+                                    <th scope="col" style="color: white;">Amount</th>
+                                    <th scope="col" style="color: white;">Date</th>
+                                    <th scope="col" style="color: white;">Categories</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var trans in Model.transactions)
+                                {
+                                    string OperationColor = trans.OperationType == OperationType.Additional ? "green" : "darkred";
+                                    <tr>
+                                        <td style="color: @OperationColor">@trans.OperationType</td>
+                                        <td style="color: white;">@trans.Amount</td>
+                                        <td style="color: white;">@trans.Date</td>
+                                        <td style="color: white;">@trans.Category</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        }
+                        else
+                        {
+                            <p>There is no data to display</p>
+                        }
+                    }
+                </table>
+            </div>
+        </div>
+    </div>  
+</div>
